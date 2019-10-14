@@ -92,15 +92,6 @@ def ftp_mirror(local_web_dir_location, ftp_web_dir_location, user, password, hos
 	log.debug(ftp_command)
 	subprocess.call(ftp_command)
 
-def scp_upload(local_web_dir_location, scp_web_dir_location, user, password, host):
-	if args.debug:
-		scp_command = ['sshpass', '-p', password, 'scp', '-r', '-v', local_web_dir_location, user + '@' + host + ":'" + scp_web_dir_location + "'"]
-	else:
-		scp_command = ['sshpass', '-p', password, 'scp', '-r', local_web_dir_location, user + '@' + host + ":'" + scp_web_dir_location + "'"]
-	log.info("Uploading FTP files to " + scp_web_dir_location + " on host " + host)
-	log.debug(scp_command)
-	subprocess.call(scp_command)
-
 # takes the standard db dump, prepends drop schema, and uploads via mysql
 def db_overwrite_tertiary(local_db_dir_location, schema, user, password, host):
 
