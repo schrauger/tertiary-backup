@@ -51,16 +51,16 @@ def run_backup(site_name, site_details, local_storage_path):
 	mkdir(local_site_path)
 
 	# 1. rsync all files to local, including the database dump
-	log.info("Acquiring latest backup")
-	rsync_download(site_details['rsync_dir'], local_site_path, site_details['rsync_user'], site_details['rsync_host'])
+#	log.info("Acquiring latest backup")
+#	rsync_download(site_details['rsync_dir'], local_site_path, site_details['rsync_user'], site_details['rsync_host'])
 
 	# 2. upload all web files to tertiary via ftp
-	log.info("Uploading files")
-	scp_upload(local_site_path + "/web/", site_details['ftp_dir'], site_details['ftp_user'], site_details['ftp_pass'], site_details['ftp_host'])
+#	log.info("Uploading files")
+#	ftp_mirror(local_site_path + "/web/", site_details['ftp_dir'], site_details['ftp_user'], site_details['ftp_pass'], site_details['ftp_host'])
 
 	# 3. overwrite database on tertiary
-#	log.info("Uploading database")
-#	db_overwrite_tertiary(local_site_path + "/db/", site_details['db_schema'], site_details['db_user'], site_details['db_pass'], site_details['db_host'])
+	log.info("Uploading database")
+	db_overwrite_tertiary(local_site_path + "/db/", site_details['db_schema'], site_details['db_user'], site_details['db_pass'], site_details['db_host'])
 
 def mkdir(local_site_path):
 	mkdir_command = ['mkdir', '-p', local_site_path]
@@ -81,6 +81,16 @@ def rsync_download(remote_latest_backup_location, local_root_dir_location, user,
 	log.debug("Removing wp-config.php file if exists")
 	log.debug(delete_wpconfig_command)
 	subprocess.call(delete_wpconfig_command)
+
+def ftp_mirror(local_web_dir_location, ftp_web_dir_location, user, password, host):
+	if args.debug:
+		ftp_command = ['lftp', '-c', 'open --user "' + user + '" --password "' + password + '" sftp://' + host + '/; mirror --exclude .git/ --exclude wp-config.php --exclude web.config -e -c --verbose=9 -R -L "' + local_web_dir_location + '" "' + ftp_web_dir_location + '"']
+	else:
+		ftp_command = ['lftp', '-c', 'open --user "' + user + '" --password "' + password + '" sftp://' + host + '/; mirror --exclude .git/ --exclude wp-config.php --exclude web.config -e -c --verbose=0 -R -L "' + local_web_dir_location + '" "' + ftp_web_dir_location + '"']
+#		ftp_command = lftp -c "open --user NET\st508199 --password "APierOpensMyLoaf92#" sftp://production.med.ucf.edu/; mirror -c --verbose=9 -e -R -L /tmp/website/site_med_prd/web/ '/Sites/COM Public/'"
+	log.info("Uploading FTP files to " + ftp_web_dir_location + " on host " + host)
+	log.debug(ftp_command)
+	subprocess.call(ftp_command)
 
 def scp_upload(local_web_dir_location, scp_web_dir_location, user, password, host):
 	if args.debug:
@@ -119,24 +129,24 @@ def db_get_dump_filename(local_db_dir_location):
 	log.error("No .sql file located in " + local_db_dir_location)
 	return #no .sql file detected in the directory given
 
-def db_prepend_drop_schema(db_dump_file, schema):
+def db_prepend_drop_schema(dbdump, schema):
 	# Prepend the database we want to overwrite.
-	log.info("Reading in database dump " + db_dump_file)
+	log.info("Reading in database dump " + dbdump)
 	with open(dbdump, "r") as original:
 		data = original.read()
 
 	log.info("Prepending DROP SCHEMA " + schema + " lines")
 	with open(dbdump, "w") as modified:
 		modified.write("DROP SCHEMA IF EXISTS ")
-		modified.write(schema_name)
+		modified.write(schema)
 		modified.write(";\n")
 
 		modified.write("CREATE SCHEMA ")
-		modified.write(schema_name)
+		modified.write(schema)
 		modified.write(";\n")
 
 		modified.write("USE ")
-		modified.write(schema_name)
+		modified.write(schema)
 		modified.write(";\n")
 
 		modified.write(data)
