@@ -51,16 +51,20 @@ def run_backup(site_name, site_details, local_storage_path):
 	mkdir(local_site_path)
 
 	# 1. rsync all files to local, including the database dump
-#	log.info("Acquiring latest backup")
-#	rsync_download(site_details['rsync_dir'], local_site_path, site_details['rsync_user'], site_details['rsync_host'])
+	log.info("Acquiring latest backup")
+	rsync_download(site_details['rsync_dir'], local_site_path, site_details['rsync_user'], site_details['rsync_host'])
 
 	# 2. upload all web files to tertiary via ftp
-#	log.info("Uploading files")
-#	ftp_mirror(local_site_path + "/web/", site_details['ftp_dir'], site_details['ftp_user'], site_details['ftp_pass'], site_details['ftp_host'])
+	log.info("Uploading files")
+	ftp_mirror(local_site_path + "/web/", site_details['ftp_dir'], site_details['ftp_user'], site_details['ftp_pass'], site_details['ftp_host'])
 
 	# 3. overwrite database on tertiary
 	log.info("Uploading database")
 	db_overwrite_tertiary(local_site_path + "/db/", site_details['db_schema'], site_details['db_user'], site_details['db_pass'], site_details['db_host'])
+
+	# 4. send email saying tertiary backup is done
+	log.info("Sending email")
+	send_email()
 
 def mkdir(local_site_path):
 	mkdir_command = ['mkdir', '-p', local_site_path]
