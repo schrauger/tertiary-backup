@@ -106,7 +106,7 @@ def db_overwrite_tertiary(local_db_dir_location, schema, user, password, host):
 	log.info("Reading in database dump " + db_dump_file)
 	with open(db_dump_file) as input_file:
 		# redirect the db_dump_file as the input to mysql
-		log.info("Running mysql dump commands for schema '" + schema + "' at host '" + host + "'")
+		log.info("Running mysql commands for schema '" + schema + "' at host '" + host + "'")
 		proc = subprocess.Popen(
 			mysql_command, stdin = input_file, stderr=subprocess.PIPE, stdout=subprocess.PIPE )
 		output,error = proc.communicate()
