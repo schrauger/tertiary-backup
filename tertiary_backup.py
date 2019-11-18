@@ -64,7 +64,7 @@ def run_backup(site_name, site_details, local_storage_path):
 
 	# 4. send email saying tertiary backup is done
 	log.info("Sending email")
-	send_email()
+	send_email(site_name)
 
 def mkdir(local_site_path):
 	mkdir_command = ['mkdir', '-p', local_site_path]
@@ -91,7 +91,6 @@ def ftp_mirror(local_web_dir_location, ftp_web_dir_location, user, password, hos
 		ftp_command = ['lftp', '-c', 'open --user "' + user + '" --password "' + password + '" sftp://' + host + '/; mirror --exclude .git/ --exclude wp-config.php --exclude web.config -e -c --verbose=9 -R -L "' + local_web_dir_location + '" "' + ftp_web_dir_location + '"']
 	else:
 		ftp_command = ['lftp', '-c', 'open --user "' + user + '" --password "' + password + '" sftp://' + host + '/; mirror --exclude .git/ --exclude wp-config.php --exclude web.config -e -c --verbose=0 -R -L "' + local_web_dir_location + '" "' + ftp_web_dir_location + '"']
-#		ftp_command = lftp -c "open --user NET\st508199 --password "APierOpensMyLoaf92#" sftp://production.med.ucf.edu/; mirror -c --verbose=9 -e -R -L /tmp/website/site_med_prd/web/ '/Sites/COM Public/'"
 	log.info("Uploading FTP files to " + ftp_web_dir_location + " on host " + host)
 	log.debug(ftp_command)
 	subprocess.call(ftp_command)
@@ -152,13 +151,13 @@ def get_date_time():
     return date.strftime("%Y-%m-%d_%s")
 
 # send log email saying backups were completed
-def send_email():
+def send_email(site_name):
 	SENDMAIL = config.sendmail
 	FROM = config.email_from
 	TO = config.email_to
 
 	SUBJECT = "Nightly Tertiary Backup"
-	TEXT = "The nightly tertiary backup for " + get_date_time() + """ completed. \n\n\
+	TEXT = "The nightly tertiary backup for " + site_name + " completed at " + get_date_time() + """. \n\n\
 Date: """ + get_date_time()
 
 	message = """\
